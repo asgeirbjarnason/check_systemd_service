@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # Copyright 2013, Tomas Edwardsson 
 #
@@ -58,9 +59,17 @@ def loaded(stat):
 	    
 
 def get_service_status(service):
+    bullet = u'●'
+    
     stdout = Popen(["systemctl", "status", service], stdout=PIPE).communicate()[0]
+    stdout = stdout.decode('utf-8')
     stdout_lines = stdout.split("\n")
-    name = stdout_lines.pop(0).split()[0]
+    nameline = stdout_lines.pop(0).split()
+    
+    if nameline[0] == bullet:
+        name = nameline[1]
+    else:
+        name = nameline[0]
 
     headers = {}
 
@@ -69,8 +78,12 @@ def get_service_status(service):
 
 	if l == "":
 	    break
-
-	k, v = l.split(': ', 1)
+        
+        try:
+	    k, v = l.split(': ', 1)
+	except ValueError:
+	    continue # Some headers can have multiple lines. Skip them.
+	
 	if k in headers:
 	    headers[k].append(v)
 	else:
